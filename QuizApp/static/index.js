@@ -23,10 +23,9 @@ $('#loginBtn').on('click', async (e) => {
         data: JSON.stringify(userData),
         contentType: 'application/json',
         success: function (data) {
-            alert(data)
-            console.log(data.message)
             
-            // window.location.href = '/';
+            
+            window.location.href = '/admin';
         },
         error: function (xhr, status, error) {
             if (error == "UNAUTHORIZED") {

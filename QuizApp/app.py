@@ -107,6 +107,12 @@ def login_user():
     return jsonify({'message': 'successfull','id':user.id}), 200
 
 
+@app.route('/admin')
+def openAdminPanel():
+    return render_template('admin.html')
+    
+
+
 
 
 @app.route('/')
