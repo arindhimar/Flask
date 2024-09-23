@@ -72,19 +72,32 @@ class User(db.Model):
 
 
 #routes
-@app.route('/register-user', methods=['POST'])
-def register_user():
-    data = request.get_json()
-    name = data['name']
-    email = data['email']
-    password = data['password']
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        data = request.get_json()
+        name = data['name']
+        email = data['email']
+        password = data['password']
 
-    user = User(name, email, password)
-    
-    db.session.add(user)
-    db.session.commit()
-    return jsonify({'message': 'User created successfully!'})
+        # Validate the input data
+        if not name or not email or not password:
+            return jsonify({'message': 'Please fill in all fields'}), 400
 
+        if len(password) < 8:
+            return jsonify({'message': 'Password must be at least 8 characters'}), 400
+
+        # Check if the user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({'message': 'User already exists'}), 409
+
+        # Create a new user
+        user = User(name, email, password)
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({'message': 'User created successfully!'}), 201
+    return render_template('register.html')
 
 
 @app.route('/login-user', methods=['POST'])

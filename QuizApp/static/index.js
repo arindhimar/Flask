@@ -23,12 +23,11 @@ $('#loginBtn').on('click', async (e) => {
         data: JSON.stringify(userData),
         contentType: 'application/json',
         success: function (data) {
-            
-            
             window.location.href = '/admin';
         },
         error: function (xhr, status, error) {
             if (error == "UNAUTHORIZED") {
+                $("#loginResult").removeClass();
                 $("#loginResult").html("Invalid Credentials!!");
                 $("#loginResult").addClass("alert alert-danger");
                 $("#loginResult").slideDown();
@@ -38,6 +37,7 @@ $('#loginBtn').on('click', async (e) => {
                 }, 3000); 
             }
             else if(error == "NOT FOUND"){
+                $("#loginResult").removeClass();
                 $("#loginResult").html("New User??!!");
                 $("#loginResult").addClass("alert alert-warning");
                 $("#loginResult").slideDown();
@@ -47,6 +47,7 @@ $('#loginBtn').on('click', async (e) => {
                 }, 3000); 
             }
             else{
+                $("#loginResult").removeClass();
                 $("#loginResult").html("Something went wrong!!");
                 $("#loginResult").addClass("alert alert-dark");
                 $("#loginResult").slideDown();
