@@ -1,0 +1,47 @@
+body {
+    
+    font-family: Arial, sans-serif;
+}
+
+h2, h4 {
+    color: #4a90e2;
+}
+.dropdown-submenu .dropdown-menu {
+    display: none;
+    position: absolute; /* Position to the right */
+    left: 100%; /* Align to the right of the parent */
+    top: 0; /* Align vertically with the parent */
+    opacity: 0; /* Start invisible */
+    transition: opacity 0.3s ease; /* Transition effect */
+    z-index: 1000; /* Ensure it appears above other elements */
+}
+
+.dropdown-submenu:hover > .dropdown-menu {
+    display: block;
+    opacity: 1; /* Show on hover */
+}
+.personal-info-section, .question-section {
+    background-color: #f4f6f9;
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    border-radius: 5px;
+}
+.question-content {
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+#add-question-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    border-radius: 50%;
+}
+
+#add-question-btn:hover {
+    background-color: #4a90e2;
+    color: white;
+}
+
