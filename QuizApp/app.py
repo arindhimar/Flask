@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify,render_template
 import bcrypt
 from flask_sqlalchemy import SQLAlchemy
-from models import models
+# from models import User
 
 
 
@@ -59,13 +59,6 @@ class User(db.Model):
     def __repr__(self):
         return f"User('{self.name}', '{self.email}')"
     
-
-
-
-
-
-
-
 
 
 

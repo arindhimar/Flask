@@ -1,0 +1,8 @@
+Full Screen 
+Focus only on main tab
+Exit detection 
+Split scrren
+Mini Window
+Multiple Monitor Detection
+Window Focus Detection
+Tab Focus Detection

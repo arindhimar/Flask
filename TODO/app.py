@@ -1,5 +1,6 @@
-from flask import Flask, render_template,request,redirect,url_for,flash,session
+from flask import Flask, request, jsonify,render_template
 from flask_sqlalchemy import SQLAlchemy
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///quiz.db"
@@ -15,52 +16,50 @@ class Todo(db.Model):
     def __repr__(self) -> str:
         return f"{self.todoId} - {self.todoTitle} - {self.todoDescription}"
 
-@app.route('/')
-def mainPage():
-    tempData = Todo.query.all()
-    return render_template("index.html", tempData=tempData)
+@app.route('/todos', methods=['GET'])
+def get_all_todos():
+    todos = Todo.query.all()
+    return jsonify([{'todoId': todo.todoId, 'todoTitle': todo.todoTitle, 'todoDescription': todo.todoDescription} for todo in todos])
 
-@app.route('/addNewData', methods=['GET', 'POST'])
-def addData():
-    if request.method == "POST":
-        tempToDo = Todo(todoTitle=request.form['title'], todoDescription=request.form['description'])
-        db.session.add(tempToDo)
-        db.session.commit()
-        return redirect(url_for('mainPage'))  
-    return render_template("index.html")
-
-@app.route('/delete/<int:tempId>')
-def delete(tempId):
-    tempDeleteData = Todo.query.filter(todoId=tempId).first()
+@app.route('/todos', methods=['POST'])
+def create_todo():
+    data = request.get_json()
+    new_todo = Todo(todoTitle=data['title'], todoDescription=data['description'])
+    db.session.add(new_todo)
     db.session.commit()
-    return redirect(url_for('mainPage'))  
-    
+    return jsonify({'todoId': new_todo.todoId, 'todoTitle': new_todo.todoTitle, 'todoDescription': new_todo.todoDescription}), 201
 
-@app.route('/getSingleData/<int:tempId>')
-def getSingleData(tempId):
-    tempGetData = Todo.query.get(tempId)
-    if tempGetData is None:
-        flash('Todo item not found!')
-        return redirect(url_for('mainPage'))
-    session['todoId'] = tempId
-    return render_template("update_todo.html", tempGetData=tempGetData)
+@app.route('/todos/<int:todo_id>', methods=['GET'])
+def get_todo(todo_id):
+    todo = Todo.query.get(todo_id)
+    if todo is None:
+        return jsonify({'error': 'Todo item not found'}), 404
+    return jsonify({'todoId': todo.todoId, 'todoTitle': todo.todoTitle, 'todoDescription': todo.todoDescription})
 
-@app.route('/updateData', methods=['POST'])
-def updateData():
-    todoId = session.get('todoId')
-    if todoId is None:
-        flash('Todo item not found!')
-        return redirect(url_for('mainPage'))
-    tempGetData = Todo.query.get(todoId)
-    if tempGetData is None:
-        flash('Todo item not found!')
-        return redirect(url_for('mainPage'))
-    tempGetData.todoTitle = request.form['title']
-    tempGetData.todoDescription = request.form['description']
+@app.route('/todos/<int:todo_id>', methods=['PUT'])
+def update_todo(todo_id):
+    todo = Todo.query.get(todo_id)
+    if todo is None:
+        return jsonify({'error': 'Todo item not found'}), 404
+    data = request.get_json()
+    todo.todoTitle = data['title']
+    todo.todoDescription = data['description']
     db.session.commit()
-    flash('Todo item updated successfully!')
-    return redirect(url_for('mainPage'))
+    return jsonify({'todoId': todo.todoId, 'todoTitle': todo.todoTitle, 'todoDescription': todo.todoDescription})
 
+@app.route('/todos/<int:todo_id>', methods=['DELETE'])
+def delete_todo(todo_id):
+    todo = Todo.query.get(todo_id)
+    if todo is None:
+        return jsonify({'error': 'Todo item not found'}), 404
+    db.session.delete(todo)
+    db.session.commit()
+    return jsonify({'message': 'Todo item deleted successfully'}), 200
+
+@app.route('/', methods=['GET'])
+def home():
+    todos = Todo.query.all()
+    return render_template('index.html', todos=todos)
 
 if __name__ == "__main__":
     with app.app_context():

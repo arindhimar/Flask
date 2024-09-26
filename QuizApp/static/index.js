@@ -10,6 +10,20 @@ $('#loginBtn').on('click', async (e) => {
     const email = emailInput.val();
     const password = passwordInput.val();
 
+
+    if (!email || !password ) {
+
+        $("#loginResult").html("Please fill in all fields");
+        $("#loginResult").removeClass(); // Remove all existing classes
+        $("#loginResult").addClass("alert alert-warning");
+        $("#loginResult").slideDown();
+        setTimeout(function () {
+            $("#loginResult").slideUp();
+        }, 3000);
+
+        return;
+    }
+
     
     const userData = {
         email,
