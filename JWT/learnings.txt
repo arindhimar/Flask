@@ -1,0 +1,17 @@
+Login Flow
+
+The user submits login credentials to the /login route.
+The login() function checks the credentials and generates a JWT token if they are valid.
+The JWT token is returned to the client.
+Token Storage and Subsequent Requests
+
+The client stores the JWT token locally (e.g., in a cookie or local storage).
+When the client makes a request to a protected resource (e.g., /protected), it includes the stored token in the request.
+The @token_required decorator verifies the token on each request to a protected resource.
+If the token is valid, the decorator allows access to the protected resource.
+Key Points
+
+The /auth route is not being used in this implementation.
+The login() function returns a JWT token directly to the client.
+The client stores the token and includes it in subsequent requests to protected resources.
+The @token_required decorator verifies the token on each request to a protected resource.

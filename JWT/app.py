@@ -26,7 +26,7 @@ def main():
     if not session.get('logged_in'):
         return render_template('login.html')
     else:
-        return "<p>Hello World</p>"
+        return "<p>Hello, authenticated user!</p>"
 
 @app.route("/protected")
 @token_required
