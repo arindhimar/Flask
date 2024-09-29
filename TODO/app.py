@@ -1,67 +1,119 @@
 from flask import Flask, request, jsonify,render_template
-from flask_sqlalchemy import SQLAlchemy
-
+import psycopg2
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///quiz.db"
-db = SQLAlchemy(app)
-app.secret_key = 'my_secret_key_1234567890'
 
+# Database connection settings
+host = "localhost"
+database = "todoApiDb"
+user = "postgres"
+password = "root"
 
-class Todo(db.Model):
-    todoId = db.Column(db.Integer, primary_key=True)
-    todoTitle = db.Column(db.String, nullable=True)
-    todoDescription = db.Column(db.String, nullable=False)
-    
-    def __repr__(self) -> str:
-        return f"{self.todoId} - {self.todoTitle} - {self.todoDescription}"
+# Create a connection to the database
+def get_db_connection():
+    conn = psycopg2.connect(
+        host=host,
+        database=database,
+        user=user,
+        password=password
+    )
+    return conn
 
+# GET all todos
 @app.route('/todos', methods=['GET'])
 def get_all_todos():
-    todos = Todo.query.all()
-    return jsonify([{'todoId': todo.todoId, 'todoTitle': todo.todoTitle, 'todoDescription': todo.todoDescription} for todo in todos])
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM "todoApiTb"')
+    rows = cur.fetchall()
+    todos = []
+    for row in rows:
+        todos.append({
+            'todoId': row[0],
+            'todoTitle': row[1],
+            'todoDescription': row[2]
+        })
+    conn.close()
+    return jsonify(todos)
 
+# POST a new todo
 @app.route('/todos', methods=['POST'])
 def create_todo():
     data = request.get_json()
-    new_todo = Todo(todoTitle=data['title'], todoDescription=data['description'])
-    db.session.add(new_todo)
-    db.session.commit()
-    return jsonify({'todoId': new_todo.todoId, 'todoTitle': new_todo.todoTitle, 'todoDescription': new_todo.todoDescription}), 201
+    if 'todoTitle' not in data or 'todoDescription' not in data:
+        return jsonify({'error': 'Missing required fields'}), 400
 
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('INSERT INTO "todoApiTb" ("todoTitle", "todoDescription") VALUES (%s, %s)', (data['todoTitle'], data['todoDescription']))
+    conn.commit()
+    conn.close()
+    return jsonify({'message': 'Todo item created successfully'}), 201
+
+# GET a todo by id
 @app.route('/todos/<int:todo_id>', methods=['GET'])
 def get_todo(todo_id):
-    todo = Todo.query.get(todo_id)
-    if todo is None:
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM "todoApiTb" WHERE "todoId" = %s', (todo_id,))
+    row = cur.fetchone()
+    if row is None:
+        conn.close()
         return jsonify({'error': 'Todo item not found'}), 404
-    return jsonify({'todoId': todo.todoId, 'todoTitle': todo.todoTitle, 'todoDescription': todo.todoDescription})
+    todo = {
+        'todoId': row[0],
+        'todoTitle': row[1],
+        'todoDescription': row[2]
+    }
+    conn.close()
+    return jsonify(todo)
 
+# PUT a todo by id
 @app.route('/todos/<int:todo_id>', methods=['PUT'])
 def update_todo(todo_id):
-    todo = Todo.query.get(todo_id)
-    if todo is None:
-        return jsonify({'error': 'Todo item not found'}), 404
     data = request.get_json()
-    todo.todoTitle = data['title']
-    todo.todoDescription = data['description']
-    db.session.commit()
-    return jsonify({'todoId': todo.todoId, 'todoTitle': todo.todoTitle, 'todoDescription': todo.todoDescription})
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM "todoApiTb" WHERE "todoId" = %s', (todo_id,))
+    row = cur.fetchone()
+    if row is None:
+        conn.close()
+        return jsonify({'error': 'Todo item not found'}), 404
+    cur.execute('UPDATE "todoApiTb" SET "todoTitle" = %s, "todoDescription" = %s WHERE "todoId" = %s', (data['todoTitle'], data['todoDescription'], todo_id))
+    conn.commit()
+    conn.close()
+    return jsonify({'message': 'Todo item updated successfully'})
 
+# DELETE a todo by id
 @app.route('/todos/<int:todo_id>', methods=['DELETE'])
 def delete_todo(todo_id):
-    todo = Todo.query.get(todo_id)
-    if todo is None:
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM "todoApiTb" WHERE "todoId" = %s', (todo_id,))
+    row = cur.fetchone()
+    if row is None:
+        conn.close()
         return jsonify({'error': 'Todo item not found'}), 404
-    db.session.delete(todo)
-    db.session.commit()
+    cur.execute('DELETE FROM "todoApiTb" WHERE "todoId" = %s', (todo_id,))
+    conn.commit()
+    conn.close()
     return jsonify({'message': 'Todo item deleted successfully'}), 200
 
 @app.route('/', methods=['GET'])
 def home():
-    todos = Todo.query.all()
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM "todoApiTb"')
+    rows = cur.fetchall()
+    todos = []
+    for row in rows:
+        todos.append({
+            'todoId': row[0],
+            'todoTitle': row[1],
+            'todoDescription': row[2]
+        })
+    conn.close()
     return render_template('index.html', todos=todos)
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all() 
     app.run(debug=True)

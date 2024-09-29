@@ -1,0 +1,7 @@
+Signal handling with ajax using py
+
+jwt authentication
+
+authenticate => access 
+
+switch to postgre

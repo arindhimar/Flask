@@ -29,7 +29,7 @@ $(document).ready(function () {
             url: '/todos',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ title: title, description: description }),
+            data: JSON.stringify({ todoTitle: title, todoDescription: description }),
             success: function (response) {
                 alert("Todo added successfully!");
                 location.reload();
@@ -84,7 +84,7 @@ $(document).ready(function () {
             url: `/todos/${todoId}`,
             type: 'PUT',
             contentType: 'application/json',
-            data: JSON.stringify({ title: title, description: description }),
+            data: JSON.stringify({ todoTitle: title, todoDescription: description }),
             success: function (response) {
                 alert("Todo updated successfully!");
                 location.reload();
