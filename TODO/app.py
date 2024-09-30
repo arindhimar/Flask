@@ -1,7 +1,11 @@
-from flask import Flask, request, jsonify,render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 import psycopg2
+import jwt
+
+from functools import wraps
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'f6ce56d2c5c041ba90b010929a293640'
 
 # Database connection settings
 host = "localhost"
@@ -19,8 +23,24 @@ def get_db_connection():
     )
     return conn
 
+# Token verification decorator
+def token_required(func):
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        token = request.args.get('token')
+        if not token:
+            return jsonify({'Alert!': 'Token is missing!'}), 401
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'])
+        except:
+            return jsonify({'Message': 'Invalid token'}), 403
+        return func(*args, **kwargs)
+    return decorated
+
 # GET all todos
 @app.route('/todos', methods=['GET'])
+@token_required
 def get_all_todos():
     conn = get_db_connection()
     cur = conn.cursor()
@@ -38,6 +58,7 @@ def get_all_todos():
 
 # POST a new todo
 @app.route('/todos', methods=['POST'])
+@token_required
 def create_todo():
     data = request.get_json()
     if 'todoTitle' not in data or 'todoDescription' not in data:
@@ -52,6 +73,7 @@ def create_todo():
 
 # GET a todo by id
 @app.route('/todos/<int:todo_id>', methods=['GET'])
+@token_required
 def get_todo(todo_id):
     conn = get_db_connection()
     cur = conn.cursor()
@@ -70,6 +92,7 @@ def get_todo(todo_id):
 
 # PUT a todo by id
 @app.route('/todos/<int:todo_id>', methods=['PUT'])
+@token_required
 def update_todo(todo_id):
     data = request.get_json()
     conn = get_db_connection()
@@ -86,6 +109,7 @@ def update_todo(todo_id):
 
 # DELETE a todo by id
 @app.route('/todos/<int:todo_id>', methods=['DELETE'])
+@token_required
 def delete_todo(todo_id):
     conn = get_db_connection()
     cur = conn.cursor()
@@ -101,19 +125,17 @@ def delete_todo(todo_id):
 
 @app.route('/', methods=['GET'])
 def home():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('SELECT * FROM "todoApiTb"')
-    rows = cur.fetchall()
-    todos = []
-    for row in rows:
-        todos.append({
-            'todoId': row[0],
-            'todoTitle': row[1],
-            'todoDescription': row[2]
-        })
-    conn.close()
-    return render_template('index.html', todos=todos)
+    return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.form
+    if data['username'] == "admin" and data['password'] == "admin":
+        payload = {'username': data['username']}
+        token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
+        return redirect(url_for('dashboard', token=token))
+    else:
+        return jsonify({'error': 'Invalid username or password'}), 401
 
 if __name__ == "__main__":
     app.run(debug=True)
