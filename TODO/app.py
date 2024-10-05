@@ -32,11 +32,24 @@ def token_required(func):
             return jsonify({'Alert!': 'Token is missing!'}), 401
 
         try:
-            data = jwt.decode(token, app.config['SECRET_KEY'])
-        except:
+            # Specify the algorithm used during encoding
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return jsonify({'Message': 'Token has expired'}), 403
+        except jwt.InvalidTokenError:
             return jsonify({'Message': 'Invalid token'}), 403
+        
         return func(*args, **kwargs)
     return decorated
+
+
+@app.route('/dashboard', methods=['GET'])
+@token_required
+def dashboard():
+    token = request.args.get('token')
+    data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+    return render_template('index.html', username=data['username'])
+
 
 # GET all todos
 @app.route('/todos', methods=['GET'])
