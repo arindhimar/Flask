@@ -3,13 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Login</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 </head>
 <body>
-    <form action="/login" method="post">
-        <input type="text" name="username" id="username"><br><br>
-        <input type="password" name="password" id="password"><br><br>
-        <input type="submit" value="login">
+    <form id="loginForm">
+        <input type="text" name="username" id="username" placeholder="Username" required><br><br>
+        <input type="password" name="password" id="password" placeholder="Password" required><br><br>
+        <input type="submit" value="Login">
     </form>
+
+    <script>
+        $(document).ready(function() {
+            $("#loginForm").on("submit", function(e) {
+                e.preventDefault(); 
+        
+                const username = $("#username").val();
+                const password = $("#password").val();
+        
+                $.ajax({
+                    url: '/login',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ username, password }),
+                    success: function(response) {
+                        if (response.token) {
+                            localStorage.setItem('token', response.token);  // Store token
+                            // Now redirect to the dashboard and send the token in the request
+                            //loadDashboard(response.token);
+                            window.location.href = '/dashboard?token=' + encodeURIComponent(response.token);
+
+                        } else {
+                            alert("Login failed: " + response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert("An error occurred: " + error);
+                    }
+                });
+            });
+        
+            function loadDashboard(token) {
+                $.ajax({
+                    url: '/dashboard',  // Make sure this URL is correct
+                    type: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token  // Include the token in the Authorization header
+                    },
+                    success: function(response) {
+                        // Handle the success response, e.g., render the dashboard or redirect
+                        console.log(response);
+                        // You might want to render the dashboard here
+                    },
+                    error: function(xhr, status, error) {
+                        alert("An error occurred: " + error);
+                    }
+                });
+            }
+        });
+
+    </script>
 </body>
 </html>

@@ -23,32 +23,36 @@ def get_db_connection():
     )
     return conn
 
+
 # Token verification decorator
 def token_required(func):
     @wraps(func)
     def decorated(*args, **kwargs):
-        token = request.args.get('token')
+        # Try to get the token from the Authorization header
+        auth_header = request.headers.get('Authorization')
+        token = auth_header.split(' ')[1] if auth_header else None
+
+        
+        if not token:
+            print("Nihha hererere")
+            token = request.args.get('token')
+
+        print(token)  # For debugging purposes
+
         if not token:
             return jsonify({'Alert!': 'Token is missing!'}), 401
 
         try:
-            # Specify the algorithm used during encoding
+            # Directly decode the token without splitting
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
             return jsonify({'Message': 'Token has expired'}), 403
-        except jwt.InvalidTokenError:
+        except jwt.InvalidTokenError as e:
+            print(f"Token error: {e}")  # Debug print to log the specific token error
             return jsonify({'Message': 'Invalid token'}), 403
-        
+
         return func(*args, **kwargs)
     return decorated
-
-
-@app.route('/dashboard', methods=['GET'])
-@token_required
-def dashboard():
-    token = request.args.get('token')
-    data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-    return render_template('index.html', username=data['username'])
 
 
 # GET all todos
@@ -73,7 +77,7 @@ def get_all_todos():
 @app.route('/todos', methods=['POST'])
 @token_required
 def create_todo():
-    data = request.get_json()
+    data = request.get_json() or request.form  # Handle both JSON or form submission
     if 'todoTitle' not in data or 'todoDescription' not in data:
         return jsonify({'error': 'Missing required fields'}), 400
 
@@ -107,7 +111,7 @@ def get_todo(todo_id):
 @app.route('/todos/<int:todo_id>', methods=['PUT'])
 @token_required
 def update_todo(todo_id):
-    data = request.get_json()
+    data = request.get_json() or request.form
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute('SELECT * FROM "todoApiTb" WHERE "todoId" = %s', (todo_id,))
@@ -136,19 +140,40 @@ def delete_todo(todo_id):
     conn.close()
     return jsonify({'message': 'Todo item deleted successfully'}), 200
 
-@app.route('/', methods=['GET'])
-def home():
-    return render_template('login.html')
 
+# Login route
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.form
-    if data['username'] == "admin" and data['password'] == "admin":
-        payload = {'username': data['username']}
-        token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
-        return redirect(url_for('dashboard', token=token))
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    if username == 'admin' and password == 'admin':  
+        token = jwt.encode({'username': username}, app.config['SECRET_KEY'], algorithm='HS256')
+        return jsonify({'token': token}), 200
     else:
-        return jsonify({'error': 'Invalid username or password'}), 401
+        return jsonify({'message': 'Invalid credentials!'}), 401
+
+
+
+# Dashboard route (protected)
+@app.route('/dashboard', methods=['GET'])
+@token_required
+def dashboard():
+    print("Headers:", request.headers)  
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM "todoApiTb"')
+    rows = cur.fetchall()
+    todos = []
+    for row in rows:
+        todos.append({
+            'todoId': row[0],
+            'todoTitle': row[1],
+            'todoDescription': row[2]
+        })
+    conn.close()
+    return render_template("index.html", todos=todos)
 
 if __name__ == "__main__":
     app.run(debug=True)

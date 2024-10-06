@@ -2,11 +2,17 @@ $(document).ready(function () {
     $("#addForm").hide();
     $("#updateForm").hide();
 
+    // Check if the token is stored in local storage
+    const token = localStorage.getItem('token');
+    console.log("Retrieved Token:", token);  // Debugging line
+
+    // Show the add form
     $("#showAddForm").click(function (e) {
         e.preventDefault();
         $("#addForm").slideToggle();
     });
 
+    // Clear the add form
     $("#clearForm").click(function (e) {
         e.preventDefault();
         $("#title").val("");
@@ -29,6 +35,7 @@ $(document).ready(function () {
             url: '/todos',
             type: 'POST',
             contentType: 'application/json',
+            headers: { 'Authorization': 'Bearer ' + token }, 
             data: JSON.stringify({ todoTitle: title, todoDescription: description }),
             success: function (response) {
                 alert("Todo added successfully!");
@@ -36,6 +43,7 @@ $(document).ready(function () {
             },
             error: function (xhr, status, error) {
                 alert("An error occurred: " + error);
+                console.error("Error Details:", xhr.responseText);
             }
         });
     });
@@ -48,7 +56,7 @@ $(document).ready(function () {
             url: `/todos/${todoId}`,
             type: 'DELETE',
             contentType: 'application/json',
-            data: JSON.stringify({ }),
+            headers: { 'Authorization': 'Bearer ' + token },  // Add token to headers
             success: function (response) {
                 alert("Todo deleted successfully!");
                 location.reload();
@@ -84,6 +92,7 @@ $(document).ready(function () {
             url: `/todos/${todoId}`,
             type: 'PUT',
             contentType: 'application/json',
+            headers: { 'Authorization': 'Bearer ' + token },  // Add token to headers
             data: JSON.stringify({ todoTitle: title, todoDescription: description }),
             success: function (response) {
                 alert("Todo updated successfully!");
@@ -95,8 +104,6 @@ $(document).ready(function () {
             }
         });
     });
-
-
 
     // Handle clear update form
     $("#clearUpdateForm").click(function (e) {

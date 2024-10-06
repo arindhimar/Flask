@@ -42,7 +42,6 @@
                         <td>
                             <a href="#" class="btn btn-info sm-1 updateBtn" data-id="{{ temp.todoId }}" data-title="{{ temp.todoTitle }}" data-description="{{ temp.todoDescription }}">Update</a>
                             <a href="#" class="btn btn-danger sm-1 deleteBtn" data-id="{{ temp.todoId }}" >Delete</a>
-                            
                         </td>
                     </tr>
                     {% endfor %}
@@ -50,11 +49,9 @@
             </table>
         </div>
 
-
-        
-
         <div class="form" id="addForm" style="display: none;">
-            <form method="POST" action="{{ url_for('create_todo') }}">
+            <form method="POST" action="{{ url_for('create_todo') }}" id="addTodoForm">
+                <input type="hidden" id="token" name="token" value="{{ token }}"> <!-- Add hidden token field -->
                 <div class="mb-3">
                     <label for="title" class="form-label">Title</label>
                     <input type="text" class="form-control" name="title" id="title" required>
@@ -68,9 +65,9 @@
             </form>
         </div>
 
-        
         <div class="form" id="updateForm" style="display: none;">
             <form method="POST" id="updateTodoForm">
+                <input type="hidden" id="token" name="token" value="{{ token }}"> <!-- Add hidden token field -->
                 <input type="hidden" id="update_todo_id" name="todo_id">
                 <div class="mb-3">
                     <label for="update_title" class="form-label">Title</label>
@@ -84,13 +81,9 @@
                 <button type="button" class="btn btn-danger" id="clearUpdateForm">Cancel</button>
             </form>
         </div>
-        
-        
-
     </div>
 
     <!-- Optional JavaScript; choose one of the two! -->
-
     <!-- Option 1: Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
