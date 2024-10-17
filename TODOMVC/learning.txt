@@ -1,0 +1,20 @@
+Signal handling with ajax using py
+
+jwt authentication
+
+authenticate => access 
+
+switch to postgre
+
+==Lab6==
+
+backend validation(Regex)
+Layers Service layer , db layer 
+
+MVC
+repo - db calls
+controller - service layer(encrypt  decrypt)
+View - Route 
+
+also make the controller independent of the repo i.e the changes mmade in repo doesnt affect the controller
+

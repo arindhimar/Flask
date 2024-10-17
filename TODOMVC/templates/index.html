@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <title>TODO APP!</title>
+</head>
+
+<body>
+
+    <div class="container m-5">
+        <div class="heading">
+            <h1 width="100%" align="center">TODO APP!</h1>
+        </div>
+
+        <div class="items">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Actions</th>
+                        <th scope="col">
+                            <button type="button" class="btn btn-primary" id="showAddForm">Add</button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for temp in todos %}
+                    <tr>
+                        <th scope="row">{{ loop.index }}</th>
+                        <td>{{ temp.todoTitle }}</td>
+                        <td>{{ temp.todoDescription }}</td>
+                        <td>
+                            <a href="#" class="btn btn-info sm-1 updateBtn" data-id="{{ temp.todoId }}" data-title="{{ temp.todoTitle }}" data-description="{{ temp.todoDescription }}">Update</a>
+                            <a href="#" class="btn btn-danger sm-1 deleteBtn" data-id="{{ temp.todoId }}" >Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="form" id="addForm" style="display: none;">
+            <form method="POST" action="{{ url_for('app.create_todo') }}" id="addTodoForm">
+                <input type="hidden" id="token" name="token" value="{{ token }}"> <!-- Add hidden token field -->
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" class="form-control" name="title" id="title" required>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" name="description" id="description" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success sm-1" id="addData">Add Task</button>
+                <button type="button" class="btn btn-danger sm-1" id="clearForm">Cancel</button>
+            </form>
+        </div>
+
+        <div class="form" id="updateForm" style="display: none;">
+            <form method="POST" id="updateTodoForm">
+                <input type="hidden" id="token" name="token" value="{{ token }}"> <!-- Add hidden token field -->
+                <input type="hidden" id="update_todo_id" name="todo_id">
+                <div class="mb-3">
+                    <label for="update_title" class="form-label">Title</label>
+                    <input type="text" class="form-control" name="title" id="update_title" required>
+                </div>
+                <div class="mb-3">
+                    <label for="update_description" class="form-label">Description</label>
+                    <textarea class="form-control" name="description" id="update_description" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success" id="updateData">Update Task</button>
+                <button type="button" class="btn btn-danger" id="clearUpdateForm">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Optional JavaScript; choose one of the two! -->
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <script src="../static/index.js"></script>
+</body>
+
+</html>
